@@ -1,0 +1,49 @@
+# ==============================
+# Node / React / Vite
+# ==============================
+community-issue-system/node_modules/
+community-issue-system/dist/
+community-issue-system/.vite/
+
+# ==============================
+# Java / Spring Boot
+# ==============================
+civicconnect-backend/target/
+civicconnect-backend/.mvn/
+
+# ==============================
+# Environment / secrets
+# ==============================
+.env
+.env.*
+!.env.example
+
+**/.env
+**/.env.*
+
+# ==============================
+# IDE files
+# ==============================
+.vscode/
+.idea/
+*.iml
+
+# ==============================
+# Operating system files
+# ==============================
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Logs
+# ==============================
+*.log
+
+# ==============================
+# Build / temporary files
+# ==============================
+*.tmp
+*.temp
+
+# Spring Boot local configuration - contains database secrets
+civicconnect-backend/src/main/resources/application.properties
