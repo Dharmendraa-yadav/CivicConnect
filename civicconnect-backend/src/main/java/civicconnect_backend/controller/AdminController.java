@@ -3,6 +3,7 @@ package civicconnect_backend.controller;
 import civicconnect_backend.entity.Issue;
 import civicconnect_backend.service.IssueService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -22,15 +23,23 @@ public class AdminController {
         return issueService.getAllIssues();
     }
 
-    @PutMapping("/issues/{id}")
-    public Issue updateIssueStatus(
-            @PathVariable Long id,
-            @RequestBody Issue updatedIssue) {
+  @PutMapping("/issues/{id}")
+public Issue updateIssueStatus(
+        @PathVariable Long id,
+        @RequestBody Issue updatedIssue,
+        Authentication authentication) {
 
-        return issueService.updateIssue(id, updatedIssue);
-    }
+    String adminEmail = authentication.getName();
+
+    return issueService.updateIssue(id, updatedIssue, adminEmail);
+}
     @DeleteMapping("/issues/{id}")
-public boolean deleteIssue(@PathVariable Long id) {
-    return issueService.deleteIssue(id);
+public boolean deleteIssue(
+        @PathVariable Long id,
+        Authentication authentication) {
+
+    String adminEmail = authentication.getName();
+
+    return issueService.deleteIssue(id, adminEmail);
 }
 }

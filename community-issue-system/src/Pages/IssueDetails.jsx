@@ -6,32 +6,57 @@ import { useParams, Link } from "react-router-dom";
 function IssueDetails() {
   const { issueId } = useParams();
 
-  const [issue, setIssue] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+const [issue, setIssue] = useState(null);
+const [history, setHistory] = useState([]);
+const [notes, setNotes] = useState([]);
+const [auditLogs, setAuditLogs] = useState([]);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState("");
 
-  useEffect(() => {
-    setLoading(true);
-    setError("");
+useEffect(() => {
+  setLoading(true);
+  setError("");
 
-    apiFetch(`/api/issues/${issueId}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Issue not found");
-        }
-        return response.json();
-      })
-      .then((data) => {
-        setIssue(data);
-      })
-      .catch((err) => {
-        console.error("Issue details error:", err);
-        setError("Unable to load this issue. Please try again.");
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [issueId]);
+ Promise.all([
+  apiFetch(`/api/issues/${issueId}`),
+  apiFetch(`/api/issues/${issueId}/history`),
+  apiFetch(`/api/issues/${issueId}/notes`),
+  apiFetch(`/api/issues/${issueId}/audit-logs`)
+])
+    .then(async ([issueResponse, historyResponse, notesResponse, auditResponse]) => {
+      if (!issueResponse.ok) {
+        throw new Error("Issue not found");
+      }
+
+      if (!historyResponse.ok) {
+        throw new Error("Unable to load issue history");
+      }
+
+      if (!notesResponse.ok) {
+        throw new Error("Unable to load issue notes");
+      }
+      if (!auditResponse.ok) {
+  throw new Error("Unable to load audit logs");
+}
+
+      const issueData = await issueResponse.json();
+      const historyData = await historyResponse.json();
+      const notesData = await notesResponse.json();
+      const auditData = await auditResponse.json();
+
+      setIssue(issueData);
+      setHistory(historyData);
+      setNotes(notesData);
+      setAuditLogs(auditData);
+    })
+    .catch((err) => {
+      console.error("Issue details error:", err);
+      setError("Unable to load this issue. Please try again.");
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+}, [issueId]);
 
   if (loading) {
     return (
@@ -204,8 +229,99 @@ function IssueDetails() {
                   </div>
                 </div>
               );
-            })}
+            }
+            )}
           </div>
+
+
+{history.length > 0 && (
+  <div className="issue-detail-history">
+    <h3>Status History</h3>
+
+    <div className="issue-history-list">
+      {history.map((item) => (
+        <div className="issue-history-item" key={item.id}>
+          <div className="issue-history-marker">
+            ✓
+          </div>
+
+          <div className="issue-history-content">
+            <strong>
+              {item.oldStatus} → {item.newStatus}
+            </strong>
+
+            <span>
+              Changed by: {item.changedBy || "Administrator"}
+            </span>
+
+            <span>
+              {formatDate(item.changedAt)}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{notes.length > 0 && (
+  <div className="issue-detail-notes">
+    <h3>Progress Notes</h3>
+
+    <div className="issue-notes-list">
+      {notes.map((item) => (
+        <div className="issue-note-item" key={item.id}>
+          <div className="issue-note-marker">
+            •
+          </div>
+
+          <div className="issue-note-content">
+            <p>{item.note}</p>
+
+            <span>
+              Added by: {item.addedBy || "Administrator"}
+            </span>
+
+            <span>
+              {formatDate(item.createdAt)}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{auditLogs.length > 0 && (
+  <div className="issue-detail-audit">
+    <h3>Audit Activity</h3>
+
+    <div className="issue-audit-list">
+      {auditLogs.map((item) => (
+        <div className="issue-audit-item" key={item.id}>
+          <div className="issue-audit-marker">
+            ✓
+          </div>
+
+          <div className="issue-audit-content">
+            <strong>{item.action}</strong>
+
+            <p>{item.description}</p>
+
+            <span>
+              Performed by: {item.adminEmail || "Administrator"}
+            </span>
+
+            <span>
+              {formatDate(item.createdAt)}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
           {currentStatusIndex === -1 && (
             <p className="issue-detail-note">
